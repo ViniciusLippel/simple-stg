@@ -74,7 +74,9 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: #aaa;
-      padding: 0 16px 8px;
+      padding: 8px 16px 8px;
+      margin-top: 4px;
+      border-top: 1px solid #e0e0e0;
     }
 
     .folder-item {
@@ -112,11 +114,14 @@
       padding: 24px 20px;
       display: flex;
       flex-direction: column;
+      align-items: center;
       gap: 8px;
     }
 
     #photos-scroll img {
-      width: 100%;
+      max-width: 100%;
+      max-height: 75vh;
+      width: auto;
       display: block;
     }
 
@@ -160,6 +165,7 @@
 
 <div id="layout">
   <nav id="sidebar">
+    <button class="folder-item" id="btn-home" onclick="loadRoot()">Home</button>
     <div id="sidebar-title">Albums</div>
     <div id="folder-list"></div>
   </nav>
@@ -173,32 +179,41 @@
 
 <script>
   let currentPhotos = [];
-  let currentFolder = null;
+  let currentFolder = null; // null = root
   let mode = 'scroll';
 
   async function init() {
     const folders = await fetch('/api/folders').then(r => r.json());
     const list = document.getElementById('folder-list');
 
-    if (folders.length === 0) {
-      list.innerHTML = '<div id="sidebar-empty">No albums yet.</div>';
-      return;
-    }
+    list.innerHTML = folders.length === 0
+      ? '<div id="sidebar-empty">No albums yet.</div>'
+      : folders.map(f =>
+          `<button class="folder-item" onclick="loadFolder('${f}')">${f}</button>`
+        ).join('');
 
-    list.innerHTML = folders.map(f =>
-      `<button class="folder-item" onclick="loadFolder('${f}')">${f}</button>`
-    ).join('');
+    loadRoot();
+  }
+
+  async function loadRoot() {
+    currentFolder = null;
+
+    document.querySelectorAll('.folder-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('btn-home').classList.add('active');
+
+    currentPhotos = await fetch('/api/photos').then(r => r.json());
+    render();
   }
 
   async function loadFolder(folder) {
     currentFolder = folder;
 
-    document.querySelectorAll('.folder-item').forEach(el => {
+    document.getElementById('btn-home').classList.remove('active');
+    document.querySelectorAll('#folder-list .folder-item').forEach(el => {
       el.classList.toggle('active', el.textContent === folder);
     });
 
-    const photos = await fetch(`/api/photos/${folder}`).then(r => r.json());
-    currentPhotos = photos;
+    currentPhotos = await fetch(`/api/photos/${folder}`).then(r => r.json());
     render();
   }
 
@@ -214,10 +229,19 @@
     const scroll = document.getElementById('photos-scroll');
     const mosaic = document.getElementById('photos-mosaic');
 
+    if (currentPhotos.length === 0) {
+      scroll.style.display = 'none';
+      mosaic.style.display = 'none';
+      placeholder.style.display = 'block';
+      placeholder.textContent = currentFolder === null ? 'No photos in root folder.' : 'No photos in this album.';
+      return;
+    }
+
     placeholder.style.display = 'none';
 
+    const base = currentFolder === null ? '/photos' : `/photos/${currentFolder}`;
     const imgs = currentPhotos.map(name =>
-      `<img src="/photos/${currentFolder}/${name}" alt="${name}" loading="lazy">`
+      `<img src="${base}/${name}" alt="${name}" loading="lazy">`
     ).join('');
 
     if (mode === 'scroll') {

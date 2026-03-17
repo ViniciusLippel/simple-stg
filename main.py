@@ -28,6 +28,17 @@ def list_folders():
     return folders
 
 
+@app.get("/api/photos")
+def list_root_photos():
+    if not PHOTOS_DIR.exists():
+        return []
+    return sorted(
+        f.name
+        for f in PHOTOS_DIR.iterdir()
+        if f.is_file() and f.suffix.lower() in ALLOWED_EXTENSIONS
+    )
+
+
 @app.get("/api/photos/{folder}")
 def list_photos(folder: str):
     folder_path = PHOTOS_DIR / folder
