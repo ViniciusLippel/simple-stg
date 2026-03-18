@@ -1,4 +1,12 @@
 {
-  "root": [],
-  "albums": {}
+  "root": [
+    "chris-lutke-VMJGmTuRVFs-unsplash.jpg",
+    "luise-and-nic-hETU8_b2IM0-unsplash.jpg"
+  ],
+  "albums": {
+    "example": [
+      "chris-lutke-VMJGmTuRVFs-unsplash.jpg",
+      "luise-and-nic-hETU8_b2IM0-unsplash.jpg"
+    ]
+  }
 }
