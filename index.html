@@ -178,12 +178,14 @@
 </div>
 
 <script>
+  let manifest = { root: [], albums: {} };
   let currentPhotos = [];
   let currentFolder = null; // null = root
   let mode = 'scroll';
 
   async function init() {
-    const folders = await fetch('/api/folders').then(r => r.json());
+    manifest = await fetch('photos.json').then(r => r.json());
+    const folders = Object.keys(manifest.albums);
     const list = document.getElementById('folder-list');
 
     list.innerHTML = folders.length === 0
@@ -195,25 +197,21 @@
     loadRoot();
   }
 
-  async function loadRoot() {
+  function loadRoot() {
     currentFolder = null;
-
     document.querySelectorAll('.folder-item').forEach(el => el.classList.remove('active'));
     document.getElementById('btn-home').classList.add('active');
-
-    currentPhotos = await fetch('/api/photos').then(r => r.json());
+    currentPhotos = manifest.root;
     render();
   }
 
-  async function loadFolder(folder) {
+  function loadFolder(folder) {
     currentFolder = folder;
-
     document.getElementById('btn-home').classList.remove('active');
     document.querySelectorAll('#folder-list .folder-item').forEach(el => {
       el.classList.toggle('active', el.textContent === folder);
     });
-
-    currentPhotos = await fetch(`/api/photos/${folder}`).then(r => r.json());
+    currentPhotos = manifest.albums[folder] || [];
     render();
   }
 
@@ -239,7 +237,7 @@
 
     placeholder.style.display = 'none';
 
-    const base = currentFolder === null ? '/photos' : `/photos/${currentFolder}`;
+    const base = currentFolder === null ? 'photos' : `photos/${currentFolder}`;
     const imgs = currentPhotos.map(name =>
       `<img src="${base}/${name}" alt="${name}" loading="lazy">`
     ).join('');

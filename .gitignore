@@ -2,8 +2,3 @@ __pycache__/
 *.pyc
 .venv/
 venv/
-photos/**/*.jpg
-photos/**/*.jpeg
-photos/**/*.png
-photos/**/*.gif
-photos/**/*.webp
